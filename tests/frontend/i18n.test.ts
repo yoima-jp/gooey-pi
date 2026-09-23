@@ -40,7 +40,7 @@ describe('i18n', () => {
   it('translates the Japanese catalog and interpolates its template values', () => {
     expect(translate('ja', 'nav.settings')).toBe('設定')
     expect(translate('ja', 'appearance.text.default')).toBe('標準')
-    expect(translate('ja', 'appearance.language.japanese')).toBe('日本語')
+    expect(translate('ja', 'appearance.language.system')).toBe('システム設定に従う')
     expect(translate('ja', 'appearance.language.available', { count: 3 })).toBe('3 言語に対応')
   })
 })
