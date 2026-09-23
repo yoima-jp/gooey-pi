@@ -25,7 +25,7 @@ export class SettingsService {
         return value
       },
       locale: (value) => {
-        if (value !== 'system' && value !== 'en' && value !== 'zh-CN') throw new TypeError('Invalid locale')
+        if (value !== 'system' && value !== 'en' && value !== 'zh-CN' && value !== 'ja') throw new TypeError('Invalid locale')
         return value
       },
       interfaceFontScale: (value) => {

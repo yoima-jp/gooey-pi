@@ -21,6 +21,7 @@ const locales: Array<{ value: LocalePreference; label: MessageKey }> = [
   { value: 'system', label: 'appearance.language.system' },
   { value: 'en', label: 'appearance.language.english' },
   { value: 'zh-CN', label: 'appearance.language.chinese' },
+  { value: 'ja', label: 'appearance.language.japanese' },
 ]
 
 /** Arrow/Home/End movement inside a radio group selects as it moves. */

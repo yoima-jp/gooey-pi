@@ -9,14 +9,25 @@ describe('i18n', () => {
     expect(resolveLocale('system', ['fr-FR', 'zh-SG'])).toBe('zh-CN')
   })
 
+  it('detects Japanese system locales', () => {
+    expect(resolveLocale('system', ['ja-JP'])).toBe('ja')
+    expect(resolveLocale('system', ['ja'])).toBe('ja')
+    expect(resolveLocale('system', ['fr-FR', 'ja-JP'])).toBe('ja')
+  })
+
   it('uses the first supported system locale in preference order', () => {
     expect(resolveLocale('system', ['en-US', 'bg-US', 'zh-Hans-US'])).toBe('en')
     expect(resolveLocale('system', ['zh-Hans-US', 'en-US'])).toBe('zh-CN')
+    expect(resolveLocale('system', ['ja-JP', 'en-US'])).toBe('ja')
+    expect(resolveLocale('system', ['en-US', 'ja-JP'])).toBe('en')
+    expect(resolveLocale('system', ['fr-FR', 'de-DE'])).toBe('en')
   })
 
   it('honors an explicit locale preference over the system locale', () => {
     expect(resolveLocale('en', ['zh-CN'])).toBe('en')
     expect(resolveLocale('zh-CN', ['en-US'])).toBe('zh-CN')
+    expect(resolveLocale('ja', ['en-US'])).toBe('ja')
+    expect(resolveLocale('ja', ['zh-CN'])).toBe('ja')
   })
 
   it('interpolates values, selects plural forms, and falls back to English', () => {
@@ -24,5 +35,12 @@ describe('i18n', () => {
     expect(translate('en', 'appearance.language.available', { count: 2 })).toBe('2 languages available')
     expect(translate('zh-CN', 'appearance.language.available', { count: 2 })).toBe('支持 2 种语言')
     expect(translate('zh-CN', 'common.reload')).toBe('Reload GooeyPi')
+  })
+
+  it('translates the Japanese catalog and interpolates its template values', () => {
+    expect(translate('ja', 'nav.settings')).toBe('設定')
+    expect(translate('ja', 'appearance.text.default')).toBe('標準')
+    expect(translate('ja', 'appearance.language.japanese')).toBe('日本語')
+    expect(translate('ja', 'appearance.language.available', { count: 3 })).toBe('3 言語に対応')
   })
 })

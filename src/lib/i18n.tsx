@@ -40,6 +40,7 @@ const englishCatalog = {
   'appearance.language.system': 'System default',
   'appearance.language.english': 'English',
   'appearance.language.chinese': 'Simplified Chinese',
+  'appearance.language.japanese': 'Japanese',
   'appearance.language.available': { one: '{count} language available', other: '{count} languages available' },
   'appearance.text.title': 'Text size',
   'appearance.text.label': 'Interface text',
@@ -54,7 +55,7 @@ const englishCatalog = {
 } as const satisfies Record<string, Message>
 
 export type MessageKey = keyof typeof englishCatalog
-export type ResolvedLocale = 'en' | 'zh-CN'
+export type ResolvedLocale = 'en' | 'zh-CN' | 'ja'
 
 const simplifiedChineseCatalog: Partial<Record<MessageKey, Message>> = {
   'nav.projects': '项目',
@@ -91,6 +92,7 @@ const simplifiedChineseCatalog: Partial<Record<MessageKey, Message>> = {
   'appearance.language.system': '跟随系统',
   'appearance.language.english': '英语',
   'appearance.language.chinese': '简体中文',
+  'appearance.language.japanese': '日语',
   'appearance.language.available': { one: '支持 {count} 种语言', other: '支持 {count} 种语言' },
   'appearance.text.title': '文本大小',
   'appearance.text.label': '界面文本',
@@ -104,6 +106,64 @@ const simplifiedChineseCatalog: Partial<Record<MessageKey, Message>> = {
   'appearance.motion.description': '尽量减少面板过渡和动态状态指示。',
 }
 
+// Japanese has no plural inflection, so `appearance.language.available` stays a
+// single string instead of the { one, other } shape the English catalog needs.
+const japaneseCatalog: Partial<Record<MessageKey, Message>> = {
+  'common.reload': 'GooeyPi を再読み込み',
+  'nav.projects': 'プロジェクト',
+  'nav.activity': 'アクティビティ',
+  'nav.scheduled': 'スケジュール',
+  'nav.capabilities': '機能',
+  'nav.settings': '設定',
+  'projects.sort': 'プロジェクトの並べ替え',
+  'projects.sort.menu': '並べ替え順',
+  'projects.sort.recent': '最近の使用順',
+  'projects.sort.alphabetical': '名前順',
+  'projects.pin': 'プロジェクトをピン留め',
+  'projects.unpin': 'ピン留めを解除',
+  'settings.sections': '設定セクション',
+  'settings.general': '一般',
+  'settings.appearance': '外観',
+  'settings.harness': 'ハーネス',
+  'settings.providers': 'プロバイダー',
+  'settings.voice': '音声',
+  'settings.pets': 'ペット',
+  'settings.browser': 'ブラウザ',
+  'settings.terminal': 'ターミナル',
+  'settings.privacy': 'プライバシー',
+  'settings.about': 'このアプリについて',
+  'appearance.title': '外観',
+  'appearance.description': 'どのような環境でもワークスペースを使いやすくします。',
+  'appearance.theme.title': 'テーマ',
+  'appearance.theme.system': 'システム',
+  'appearance.theme.light': 'ライト',
+  'appearance.theme.dark': 'ダーク',
+  'appearance.language.title': '言語',
+  'appearance.language.label': '表示言語',
+  'appearance.language.description': 'GooeyPi の表示に使用する言語を選択します。',
+  'appearance.language.system': 'システム設定に従う',
+  'appearance.language.english': '英語',
+  'appearance.language.chinese': '簡体字中国語',
+  'appearance.language.japanese': '日本語',
+  'appearance.language.available': '{count} 言語に対応',
+  'appearance.text.title': '文字サイズ',
+  'appearance.text.label': '表示テキスト',
+  'appearance.text.description': 'レイアウトを崩さずに文字を読みやすくします。',
+  'appearance.text.aria': '表示テキストのサイズ',
+  'appearance.text.smaller': '小',
+  'appearance.text.default': '標準',
+  'appearance.text.larger': '大',
+  'appearance.motion.title': 'アニメーション',
+  'appearance.motion.reduce': 'アニメーションを減らす',
+  'appearance.motion.description': 'パネルの切り替えやアニメーション表示を控えめにします。',
+}
+
+/** Localised catalogs keyed by resolved locale; English is the base and fallback. */
+const catalogs: Partial<Record<ResolvedLocale, Partial<Record<MessageKey, Message>>>> = {
+  'zh-CN': simplifiedChineseCatalog,
+  ja: japaneseCatalog,
+}
+
 function browserLanguages(): readonly string[] {
   if (typeof navigator === 'undefined') return []
   return navigator.languages.length ? navigator.languages : [navigator.language]
@@ -115,12 +175,13 @@ export function resolveLocale(preference: LocalePreference, languages: readonly 
     const normalized = language.toLowerCase()
     if (normalized === 'en' || normalized.startsWith('en-')) return 'en'
     if (normalized === 'zh' || normalized === 'zh-cn' || normalized === 'zh-sg' || normalized === 'zh-hans' || normalized.startsWith('zh-hans-')) return 'zh-CN'
+    if (normalized === 'ja' || normalized.startsWith('ja-')) return 'ja'
   }
   return 'en'
 }
 
 export function translate(locale: ResolvedLocale, key: MessageKey, values: MessageValues = {}): string {
-  const translated = locale === 'zh-CN' ? simplifiedChineseCatalog[key] : undefined
+  const translated = catalogs[locale]?.[key]
   const message = translated ?? englishCatalog[key]
   const template = typeof message === 'string'
     ? message

@@ -45,14 +45,42 @@ describe('AppearanceSettings', () => {
 
     expect(container.querySelector('h1')?.textContent).toBe('外观')
     expect(container.querySelector('[role="radiogroup"]')?.getAttribute('aria-label')).toBe('界面文本大小')
-    expect(container.textContent).toContain('支持 2 种语言')
+    expect(container.textContent).toContain('支持 3 种语言')
     const locale = container.querySelector<HTMLSelectElement>('select')!
-    expect([...locale.options].map((option) => option.textContent)).toEqual(['跟随系统', '英语', '简体中文'])
+    expect([...locale.options].map((option) => option.textContent)).toEqual(['跟随系统', '英语', '简体中文', '日语'])
     act(() => {
       locale.value = 'en'
       locale.dispatchEvent(new Event('change', { bubbles: true }))
     })
     expect(update).toHaveBeenCalledWith({ locale: 'en' })
+
+    act(() => {
+      locale.value = 'ja'
+      locale.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(update).toHaveBeenLastCalledWith({ locale: 'ja' })
+  })
+
+  it('renders Japanese, offers the Japanese option, and persists it', () => {
+    const update = vi.fn()
+    act(() => root.render(
+      <I18nProvider preference="ja">
+        <AppearanceSettings settings={{ ...DEFAULT_SETTINGS, locale: 'ja' }} onUpdate={update} />
+      </I18nProvider>,
+    ))
+
+    expect(container.querySelector('h1')?.textContent).toBe('外観')
+    expect(container.querySelector('[role="radiogroup"]')?.getAttribute('aria-label')).toBe('表示テキストのサイズ')
+    expect([...container.querySelectorAll<HTMLButtonElement>('[role="radio"]')].map((option) => option.textContent)).toEqual(['小', '標準', '大'])
+    expect(container.textContent).toContain('3 言語に対応')
+    const locale = container.querySelector<HTMLSelectElement>('select')!
+    expect(locale.value).toBe('ja')
+    expect([...locale.options].map((option) => option.textContent)).toEqual(['システム設定に従う', '英語', '簡体字中国語', '日本語'])
+    act(() => {
+      locale.value = 'zh-CN'
+      locale.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(update).toHaveBeenCalledWith({ locale: 'zh-CN' })
   })
 
   it('exposes one tab stop and selects the interface size with arrow, Home, and End keys', () => {
