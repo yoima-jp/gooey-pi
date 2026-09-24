@@ -1,8 +1,6 @@
 import { formattingLocaleTag, translate } from '@/lib/i18n'
 import type { PrimeContextUsage, SessionUsage } from '@/types/api'
 
-export const PRICING_UNAVAILABLE = 'Pricing unavailable'
-
 /**
  * Formats a USD amount: `$0.42`, `$1.23`, `<$0.01` for tiny non-zero values.
  * Number grouping stays on `en-US` because it matches every supported locale's

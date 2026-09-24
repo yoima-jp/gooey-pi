@@ -2,16 +2,12 @@ import { AudioWaveform, Mic, MicOff, X } from 'lucide-react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { PetDefinition, PrimeWorkApi } from '@/types/api'
+import { BUILT_IN_PETS, petDisplayName } from '@/lib/built-in-pets'
 import { useI18n } from '@/lib/i18n'
 import { PetAvatar, type PetActivity } from './PetAvatar'
 
 interface Position { x: number; y: number }
 interface DragState { pointerId: number; dx: number; dy: number; lastX: number; lastY: number; moved: boolean }
-
-const BUILT_INS: PetDefinition[] = [
-  { id: 'orb', petId: 'orb', displayName: 'Orb', description: 'A fluid voice orb that shifts with GooeyPi activity.', source: 'built-in', kind: 'orb' },
-  { id: 'gooey-pi', petId: 'gooey-pi', displayName: 'GooeyPi', description: 'A friendly purple jelly pet shaped like the mathematical pi symbol.', source: 'built-in', kind: 'spritesheet' },
-]
 
 function initialPosition(): Position {
   const fallback = { x: Math.max(16, window.innerWidth - 150), y: Math.max(70, window.innerHeight - 180) }
@@ -54,7 +50,7 @@ export function DesktopPet({ pets, petId, agentBusy, voiceActive, reduceMotion, 
   const avatarSize = Math.round(96 * normalizedPetSize / 100)
   const surfaceWidth = Math.max(112, avatarSize + 24)
   const initialSurfaceHeight = avatarSize + 34
-  const [available, setAvailable] = useState<PetDefinition[]>(BUILT_INS)
+  const [available, setAvailable] = useState<PetDefinition[]>(BUILT_IN_PETS)
   const [position, setPosition] = useState(() => constrained(initialPosition(), initialSurfaceHeight, surfaceWidth))
   const [surfaceHeight, setSurfaceHeight] = useState(initialSurfaceHeight)
   const [dragging, setDragging] = useState(false)
@@ -116,7 +112,7 @@ export function DesktopPet({ pets, petId, agentBusy, voiceActive, reduceMotion, 
     return () => window.clearTimeout(timer)
   }, [jumping, reduceMotion])
 
-  const pet = useMemo(() => available.find((item) => item.id === petId) ?? available.find((item) => item.id === 'orb') ?? BUILT_INS[0], [available, petId])
+  const pet = useMemo(() => available.find((item) => item.id === petId) ?? available.find((item) => item.id === 'orb') ?? BUILT_IN_PETS[0], [available, petId])
   const activity: PetActivity = dragging
     ? direction === 'left' ? 'running-left' : 'running-right'
     : jumping ? 'jumping'
@@ -203,7 +199,7 @@ export function DesktopPet({ pets, petId, agentBusy, voiceActive, reduceMotion, 
         className="desktop-pet__drag-target"
         role="button"
         tabIndex={0}
-        aria-label={t('pets.dragLabel', { name: pet.displayName })}
+        aria-label={t('pets.dragLabel', { name: petDisplayName(pet, t) })}
         aria-keyshortcuts={onDismiss ? 'Delete Backspace' : undefined}
         onPointerDown={startDrag}
         onPointerMove={moveDrag}

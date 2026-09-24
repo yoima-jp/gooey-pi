@@ -293,19 +293,19 @@ export function replayPrimeEvents(
         else appendNode(draft, withPartId({ type: partType, text }))
       } else if (deltaType === 'toolcall_end') {
         const tool = record(delta?.toolCall)
-        const name = string(tool?.name) ?? 'Tool'
+        const name = string(tool?.name) ?? message('transcript.toolFallback')
         upsertToolDraft(assistantIndex(), effectiveToolId(string(tool?.id), name), name, tool?.arguments ?? tool?.args)
       }
       continue
     }
     if (type === 'tool_execution_start') {
-      const name = string(raw.toolName) ?? 'Tool'
+      const name = string(raw.toolName) ?? message('transcript.toolFallback')
       upsertToolDraft(assistantIndex(), effectiveToolId(string(raw.toolCallId), name), name, raw.args)
       continue
     }
     if (type === 'tool_execution_update') {
       const index = assistantIndex()
-      const name = string(raw.toolName) ?? 'Tool'
+      const name = string(raw.toolName) ?? message('transcript.toolFallback')
       const id = effectiveToolId(string(raw.toolCallId), name)
       upsertToolDraft(index, id, name, raw.args)
       const draft = draftParts(index)
@@ -315,7 +315,7 @@ export function replayPrimeEvents(
     }
     if (type === 'tool_execution_end') {
       const index = assistantIndex()
-      const name = string(raw.toolName) ?? 'Tool'
+      const name = string(raw.toolName) ?? message('transcript.toolFallback')
       const id = effectiveToolId(string(raw.toolCallId), name)
       const draft = draftParts(index)
       const call = draft.firstToolById.get(id)

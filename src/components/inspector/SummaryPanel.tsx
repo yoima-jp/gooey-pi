@@ -4,6 +4,7 @@ import type { AutomationScheduleRecord, GitStatus, NativeHeartbeatRecord, Projec
 import { formatRelative } from '@/lib/data'
 import { formatSessionCost, formatSessionTokens } from '@/lib/format-cost'
 import { useI18n } from '@/lib/i18n'
+import { DEFINITION_STATUS_KEYS, HEARTBEAT_STATUS_KEYS } from '@/lib/schedule-labels'
 import { MarkdownText } from '../MarkdownText'
 
 interface SummaryPanelProps {
@@ -62,10 +63,10 @@ export const SummaryPanel = memo(function SummaryPanel({ agentName = 'Prime Agen
       <section className="summary-section"><h3>{t('inspector.summary.progress')}</h3><div className="progress-list"><div><Check size={13} /><span>{t('inspector.summary.contextLoaded')}</span></div><div><Check size={13} /><span>{t('inspector.summary.toolsRecorded', { count: toolCount })}</span></div><div className={git.files.length ? 'is-current' : ''}><CircleDot size={13} /><span>{git.files.length ? t('inspector.summary.filesReady', { count: git.files.length }) : git.isRepo ? t('inspector.summary.noChanges') : t('inspector.summary.noGit')}</span></div></div></section>
       {automations.length || heartbeats.length ? <section className="summary-section"><h3>{t('inspector.summary.automations')}</h3><div className="summary-automation-list">
         {automations.slice(0, 2).map((task) => <button type="button" key={task.id} onClick={() => onOpenAutomation(task.id)}>
-          <span className="summary-automation-icon"><CalendarClock size={14}/></span><span><strong>{task.title}</strong><small>{task.status}{task.nextRunAt ? t('inspector.summary.nextRun', { time: formatRelative(task.nextRunAt) }) : ''}</small></span>
+          <span className="summary-automation-icon"><CalendarClock size={14}/></span><span><strong>{task.title}</strong><small>{t(DEFINITION_STATUS_KEYS[task.status])}{task.nextRunAt ? t('inspector.summary.nextRun', { time: formatRelative(task.nextRunAt) }) : ''}</small></span>
         </button>)}
         {heartbeats.slice(0, Math.max(0, 2 - automations.length)).map((heartbeat) => <button type="button" key={heartbeat.id} onClick={() => onOpenAutomation(heartbeat.id)}>
-          <span className="summary-automation-icon is-heartbeat"><HeartPulse size={14}/></span><span><strong>{heartbeat.label ?? (heartbeat.source === 'heartbeat' ? t('inspector.summary.threadHeartbeat') : t('inspector.summary.agentHeartbeat'))}</strong><small>{heartbeat.status}{heartbeat.nextRunAt ? t('inspector.summary.nextRun', { time: formatRelative(heartbeat.nextRunAt) }) : ''}</small></span>
+          <span className="summary-automation-icon is-heartbeat"><HeartPulse size={14}/></span><span><strong>{heartbeat.label ?? (heartbeat.source === 'heartbeat' ? t('inspector.summary.threadHeartbeat') : t('inspector.summary.agentHeartbeat'))}</strong><small>{t(HEARTBEAT_STATUS_KEYS[heartbeat.status])}{heartbeat.nextRunAt ? t('inspector.summary.nextRun', { time: formatRelative(heartbeat.nextRunAt) }) : ''}</small></span>
         </button>)}
         {automations.length + heartbeats.length > 2 ? <button type="button" className="summary-automation-more" onClick={() => onOpenAutomation(automations[0]?.id ?? heartbeats[0]!.id)}>{t('inspector.summary.viewAllAutomations', { count: automations.length + heartbeats.length })}</button> : null}
       </div></section> : null}

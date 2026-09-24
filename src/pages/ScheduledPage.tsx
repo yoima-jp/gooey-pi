@@ -41,6 +41,7 @@ import { formatRelative } from '@/lib/data'
 import { HARNESS_SHORT_NAMES } from '@/lib/harness'
 import { errorMessage } from '@/lib/errors'
 import { useI18n, type MessageKey } from '@/lib/i18n'
+import { CREATED_BY_KEYS, DEFINITION_STATUS_KEYS, EXECUTION_SPEED_KEYS, EXECUTION_THINKING_KEYS, HEARTBEAT_STATUS_KEYS, RUN_STATUS_KEYS, RUN_TRIGGER_KEYS } from '@/lib/schedule-labels'
 import { sessionTitleText } from '@/lib/session-title'
 import { EmptyState, Modal, Segmented } from '@/components/ui'
 
@@ -323,7 +324,7 @@ function needsAttention(item: AutomationScheduleRecord) {
 }
 
 function statusLabel(t: Translate, item: AutomationScheduleRecord) {
-  return needsAttention(item) ? t('schedule.status.attention') : item.status
+  return needsAttention(item) ? t('schedule.status.attention') : t(DEFINITION_STATUS_KEYS[item.status])
 }
 
 function statusIcon(item: AutomationScheduleRecord, size = 16) {
@@ -577,9 +578,9 @@ export function ScheduledPage({
 
         <div className="schedule-detail__grid">
           <section className="schedule-detail__card schedule-detail__card--prompt"><span className="schedule-detail__eyebrow">{t('schedule.detail.instruction')}</span><p>{selected.prompt}</p></section>
-          <section className="schedule-detail__card"><span className="schedule-detail__eyebrow">{t('schedule.detail.delivery')}</span><dl><div><dt>{t('schedule.detail.target')}</dt><dd>{targetSession?.title ?? project?.name ?? t('schedule.target.unavailable')}</dd></div><div><dt>{t('schedule.detail.mode')}</dt><dd>{selected.target.kind === 'session' ? t('schedule.target.existingSession') : t('schedule.target.newSession')}</dd></div><div><dt>{t('schedule.detail.createdBy')}</dt><dd>{selected.createdBy}</dd></div></dl></section>
+          <section className="schedule-detail__card"><span className="schedule-detail__eyebrow">{t('schedule.detail.delivery')}</span><dl><div><dt>{t('schedule.detail.target')}</dt><dd>{targetSession?.title ?? project?.name ?? t('schedule.target.unavailable')}</dd></div><div><dt>{t('schedule.detail.mode')}</dt><dd>{selected.target.kind === 'session' ? t('schedule.target.existingSession') : t('schedule.target.newSession')}</dd></div><div><dt>{t('schedule.detail.createdBy')}</dt><dd>{t(CREATED_BY_KEYS[selected.createdBy])}</dd></div></dl></section>
           <section className="schedule-detail__card"><span className="schedule-detail__eyebrow">{t('schedule.detail.cadence')}</span><dl><div><dt>{t('schedule.timing.title')}</dt><dd>{timingLabel(t, selected.timing)}</dd></div><div><dt>{t('schedule.detail.nextRun')}</dt><dd>{selected.nextRunAt ? `${formatDateTime(t, selected.nextRunAt)} · ${formatRelative(selected.nextRunAt)}` : t('schedule.detail.noneScheduled')}</dd></div>{selected.timing.kind === 'rrule' ? <div><dt>{t('schedule.detail.rule')}</dt><dd><code>{selected.timing.rrule}</code></dd></div> : null}</dl></section>
-          <section className="schedule-detail__card"><span className="schedule-detail__eyebrow">{t('schedule.execution.title')}</span><dl><div><dt>{t('schedule.model.label')}</dt><dd>{models.find((model) => model.key === selected.execution.model)?.name ?? selected.execution.model}</dd></div><div><dt>{t('schedule.reasoning.label')}</dt><dd>{selected.execution.thinking}</dd></div><div><dt>{t('schedule.detail.speed')}</dt><dd>{selected.execution.speed}</dd></div></dl></section>
+          <section className="schedule-detail__card"><span className="schedule-detail__eyebrow">{t('schedule.execution.title')}</span><dl><div><dt>{t('schedule.model.label')}</dt><dd>{models.find((model) => model.key === selected.execution.model)?.name ?? selected.execution.model}</dd></div><div><dt>{t('schedule.reasoning.label')}</dt><dd>{t(EXECUTION_THINKING_KEYS[selected.execution.thinking])}</dd></div><div><dt>{t('schedule.detail.speed')}</dt><dd>{t(EXECUTION_SPEED_KEYS[selected.execution.speed])}</dd></div></dl></section>
         </div>
 
         <section className="schedule-history">
@@ -588,7 +589,7 @@ export function ScheduledPage({
             const runSession = run.sessionId ? sessionMap.get(run.sessionId) : undefined
             return <article key={run.id} className={`schedule-run schedule-run--${run.status}`}>
               <div className="schedule-run__icon">{runIcon(run.status)}</div>
-              <div className="schedule-run__main"><div><strong>{run.status}</strong><span>{run.trigger}</span></div><p>{run.error ?? t('schedule.history.scheduledFor', { date: formatRunDate(t, run.scheduledFor) })}</p></div>
+              <div className="schedule-run__main"><div><strong>{t(RUN_STATUS_KEYS[run.status])}</strong><span>{t(RUN_TRIGGER_KEYS[run.trigger])}</span></div><p>{run.error ?? t('schedule.history.scheduledFor', { date: formatRunDate(t, run.scheduledFor) })}</p></div>
               <time dateTime={run.queuedAt}>{formatRunDate(t, run.finishedAt ?? run.startedAt ?? run.queuedAt)}</time>
               {run.sessionFile ? <button type="button" className="schedule-session-link" onClick={() => onOpenSession(run.sessionFile!)}>{t('schedule.open', { title: runSession?.title ?? t('schedule.history.sessionFallback') })} <ChevronRight size={13} /></button> : <span className="schedule-run__no-session">{t('schedule.history.noSession')}</span>}
             </article>
@@ -624,7 +625,7 @@ export function ScheduledPage({
         <div className="native-heartbeats__header"><div><span className="schedule-page__kicker">Prime Agent</span><h2 id="native-heartbeats-title">{t('schedule.heartbeats.title')}</h2></div><small>{t('schedule.heartbeats.note')}</small></div>
         <div className="native-heartbeats__list">{nativeHeartbeats.map((heartbeat) => <article key={heartbeat.id} className="native-heartbeat">
           <span className={`schedule-row__status schedule-row__status--${heartbeat.status}`}><CalendarClock size={15} /></span>
-          <div className="native-heartbeat__main"><span><strong>{heartbeat.label || (heartbeat.source === 'heartbeat' ? t('schedule.heartbeats.thread') : t('schedule.heartbeats.agent'))}</strong><i className={`schedule-state schedule-state--${heartbeat.status}`}>{heartbeat.status}</i></span><p>{heartbeat.prompt}</p><small>{heartbeat.schedule}{heartbeat.nextRunAt ? ` · ${t('schedule.heartbeats.next', { next: formatRelative(heartbeat.nextRunAt) })}` : ''}</small></div>
+          <div className="native-heartbeat__main"><span><strong>{heartbeat.label || (heartbeat.source === 'heartbeat' ? t('schedule.heartbeats.thread') : t('schedule.heartbeats.agent'))}</strong><i className={`schedule-state schedule-state--${heartbeat.status}`}>{t(HEARTBEAT_STATUS_KEYS[heartbeat.status])}</i></span><p>{heartbeat.prompt}</p><small>{heartbeat.schedule}{heartbeat.nextRunAt ? ` · ${t('schedule.heartbeats.next', { next: formatRelative(heartbeat.nextRunAt) })}` : ''}</small></div>
           <div className="native-heartbeat__actions">{heartbeat.status === 'active' ? <button type="button" className="button" disabled={Boolean(action)} onClick={() => void perform(`heartbeat:${heartbeat.id}`, () => onManageHeartbeat(heartbeat.id, 'pause'), t('schedule.notice.heartbeatPaused'))}>{t('schedule.action.pause')}</button> : <button type="button" className="button" disabled={Boolean(action)} onClick={() => void perform(`heartbeat:${heartbeat.id}`, () => onManageHeartbeat(heartbeat.id, 'resume'), t('schedule.notice.heartbeatResumed'))}>{t('schedule.action.resume')}</button>}<button type="button" className="button" disabled={Boolean(action)} onClick={() => void perform(`heartbeat:${heartbeat.id}`, () => onManageHeartbeat(heartbeat.id, 'stop'), t('schedule.notice.heartbeatStopped'))}>{t('schedule.action.stop')}</button></div>
         </article>)}</div>
       </section> : null}

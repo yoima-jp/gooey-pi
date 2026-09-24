@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { resolveLocale, translate } from '../../src/lib/i18n'
+import { englishCatalog, japaneseCatalog, resolveLocale, translate } from '../../src/lib/i18n'
 
 describe('i18n', () => {
+  // The catalog type already rejects a missing Japanese key; this pins the same
+  // invariant at runtime so a future catalogs-in-JSON split cannot regress it.
+  it('translates every English catalog key', () => {
+    expect(Object.keys(japaneseCatalog).sort()).toEqual(Object.keys(englishCatalog).sort())
+  })
+
   it('detects Simplified Chinese system locales without treating Traditional Chinese as Simplified', () => {
     expect(resolveLocale('system', ['zh-CN'])).toBe('zh-CN')
     expect(resolveLocale('system', ['zh-Hans-US'])).toBe('zh-CN')

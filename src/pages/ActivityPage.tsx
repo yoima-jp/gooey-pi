@@ -17,6 +17,15 @@ const ACTIVITY_FILTER_OPTIONS: ReadonlyArray<{ value: ActivityFilter; label: Mes
   { value: 'running', label: 'activity.filter.running' },
 ]
 
+// Statuses without a phrase of their own render the stored value, so the catalog
+// entries mirror the enum; `.activity-status` capitalises them in CSS.
+const ACTIVITY_STATUS_KEYS = {
+  idle: 'activity.status.idle',
+  running: 'activity.status.running',
+  failed: 'activity.status.failed',
+  unknown: 'activity.status.unknown',
+} as const satisfies Record<Exclude<SessionRecord['status'], 'waiting' | 'complete'>, MessageKey>
+
 export interface ActivityViewState {
   filter: ActivityFilter
   query: string
@@ -66,7 +75,7 @@ export function ActivityPage({ sessions, projects, clearedActivity, onOpen, onCl
     <div className="page-tools page-tools--activity"><Segmented value={filter} label={t('activity.filter.aria')} onChange={(value) => setViewState((current) => updateActivityCriteria(current, { filter: value as ActivityFilter }))} options={ACTIVITY_FILTER_OPTIONS.map(({ value, label }) => ({ value, label: t(label) }))}/><div className="activity-tools__right"><label className="page-search page-search--small"><Search size={13}/><input value={query} onChange={(event) => setViewState((current) => updateActivityCriteria(current, { query: event.target.value }))} placeholder={t('activity.search.placeholder')}/></label><button type="button" className="button button--compact activity-clear-all" disabled={!clearable.length} onClick={() => onClear(clearable)}>{t('activity.clearAll')}</button></div></div>
     {displayed.length ? <div className="activity-list">{displayed.map((session) => {
       const clearableSession = Boolean(activityNotificationSignature(session))
-      return <div className="activity-row" key={session.id}><button type="button" className="activity-row__main" aria-label={t('activity.aria.open', { title: sessionTitleText(session.title, t) })} onClick={() => onOpen(session)}><span className={`activity-icon activity-icon--${session.status}`}>{session.status === 'running' ? <LoaderCircle className="spin" size={15}/> : session.status === 'failed' || session.status === 'waiting' ? <CircleAlert size={15}/> : <CheckCircle2 size={15}/>}</span><span className="activity-main"><span><strong>{sessionTitleText(session.title, t)}</strong>{session.unread ? <i>{t('activity.badge.new')}</i> : null}</span><small>{session.preview ?? t('activity.preview.empty')}</small><span><span>{projectName(session.projectPath)}</span><span><Clock3 size={11}/>{formatRelative(session.updatedAt)}</span></span></span><span className={`activity-status activity-status--${session.status}`}>{session.status === 'waiting' ? t('activity.needsAttention') : session.status === 'complete' ? t('activity.status.finished') : session.status}</span></button>{clearableSession ? <button type="button" className={`activity-row__clear activity-row__clear--${session.status}`} aria-label={t('activity.aria.clear', { title: sessionTitleText(session.title, t) })} title={t('activity.clear.aria')} onClick={() => onClear([session])}><X size={15}/></button> : null}</div>
+      return <div className="activity-row" key={session.id}><button type="button" className="activity-row__main" aria-label={t('activity.aria.open', { title: sessionTitleText(session.title, t) })} onClick={() => onOpen(session)}><span className={`activity-icon activity-icon--${session.status}`}>{session.status === 'running' ? <LoaderCircle className="spin" size={15}/> : session.status === 'failed' || session.status === 'waiting' ? <CircleAlert size={15}/> : <CheckCircle2 size={15}/>}</span><span className="activity-main"><span><strong>{sessionTitleText(session.title, t)}</strong>{session.unread ? <i>{t('activity.badge.new')}</i> : null}</span><small>{session.preview ?? t('activity.preview.empty')}</small><span><span>{projectName(session.projectPath)}</span><span><Clock3 size={11}/>{formatRelative(session.updatedAt)}</span></span></span><span className={`activity-status activity-status--${session.status}`}>{session.status === 'waiting' ? t('activity.needsAttention') : session.status === 'complete' ? t('activity.status.finished') : t(ACTIVITY_STATUS_KEYS[session.status])}</span></button>{clearableSession ? <button type="button" className={`activity-row__clear activity-row__clear--${session.status}`} aria-label={t('activity.aria.clear', { title: sessionTitleText(session.title, t) })} title={t('activity.clear.aria')} onClick={() => onClear([session])}><X size={15}/></button> : null}</div>
     })}</div> : <EmptyState icon={<Bell size={24}/>} title={t('activity.empty.title')}>{t('activity.empty.description')}</EmptyState>}
     {visible.length > displayed.length ? <button type="button" className="page-show-more" onClick={() => setViewState((current) => growActivityBatch(current, visible.length))}>{t('activity.showMore', { count: Math.min(ACTIVITY_BATCH, visible.length - displayed.length) })}</button> : null}
   </div></div>

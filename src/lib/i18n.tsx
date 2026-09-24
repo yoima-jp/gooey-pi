@@ -4,7 +4,8 @@ import type { LocalePreference } from '@/types/api'
 type Message = string | { one: string; other: string }
 type MessageValues = Record<string, string | number>
 
-const englishCatalog = {
+/** Exported so the catalog parity test can enumerate every translated key. */
+export const englishCatalog = {
   'common.reload': 'Reload GooeyPi',
   'nav.projects': 'Projects',
   'nav.activity': 'Activity',
@@ -63,7 +64,6 @@ const englishCatalog = {
   'common.continue': 'Continue',
   'common.confirm': 'Confirm',
   'common.refresh': 'Refresh',
-  'common.retry': 'Retry',
   'common.tryAgain': 'Try again',
   'common.loading': 'Loading…',
   'common.all': 'All',
@@ -496,7 +496,14 @@ const englishCatalog = {
   // The original English always used the plural form for this count, so no
   // singular variant is registered: English output stays byte-identical.
   'activity.showMore': 'Show {count} more sessions',
+  'activity.status.failed': 'failed',
   'activity.status.finished': 'Finished',
+  // The remaining statuses have no phrase of their own, so the chip renders the
+  // stored value: these English entries mirror the enum, and `.activity-status`
+  // capitalises them in CSS.
+  'activity.status.idle': 'idle',
+  'activity.status.running': 'running',
+  'activity.status.unknown': 'unknown',
   'plugins.add.bundle.intro': '{help} This installs executable code; it does not connect to an arbitrary MCP endpoint.',
   'plugins.add.card.bundle.package': 'Add Package',
   'plugins.add.card.bundle.plugin': 'Add Plugin',
@@ -552,6 +559,12 @@ const englishCatalog = {
   'plugins.filter.personal': 'Personal',
   'plugins.filter.project': 'Project',
   'plugins.filter.system': 'System',
+  // The directory row shows the stored location verbatim, so these English
+  // entries mirror the enum (the filter above words `user` as "Personal").
+  'plugins.location.bundled': 'bundled',
+  'plugins.location.project': 'project',
+  'plugins.location.system': 'system',
+  'plugins.location.user': 'user',
   'plugins.form.arguments': 'Arguments',
   'plugins.form.argumentsHint': '(one per line)',
   'plugins.form.availableIn': 'Available in',
@@ -830,6 +843,34 @@ const englishCatalog = {
   'schedule.row.next': 'Next',
   'schedule.row.noFutureRun': 'No future run',
   'schedule.status.attention': 'Needs attention',
+  // Schedule surfaces render the stored record values verbatim (detail card, run
+  // history, heartbeat rows), so these English entries mirror the enum and the
+  // English output stays unchanged; `.schedule-state` capitalises chips in CSS.
+  'schedule.value.active': 'active',
+  'schedule.value.agent': 'agent',
+  'schedule.value.auto': 'auto',
+  'schedule.value.blocked': 'blocked',
+  'schedule.value.cancelled': 'cancelled',
+  'schedule.value.completed': 'completed',
+  'schedule.value.failed': 'failed',
+  'schedule.value.fast': 'fast',
+  'schedule.value.high': 'high',
+  'schedule.value.interrupted': 'interrupted',
+  'schedule.value.low': 'low',
+  'schedule.value.manual': 'manual',
+  'schedule.value.max': 'max',
+  'schedule.value.medium': 'medium',
+  'schedule.value.minimal': 'minimal',
+  'schedule.value.normal': 'normal',
+  'schedule.value.off': 'off',
+  'schedule.value.paused': 'paused',
+  'schedule.value.queued': 'queued',
+  'schedule.value.running': 'running',
+  'schedule.value.scheduled': 'scheduled',
+  'schedule.value.skipped': 'skipped',
+  'schedule.value.succeeded': 'succeeded',
+  'schedule.value.user': 'user',
+  'schedule.value.xhigh': 'xhigh',
   'schedule.summary.active': 'active',
   'schedule.summary.aria': 'Schedule summary',
   'schedule.summary.attention': 'need attention',
@@ -1361,7 +1402,9 @@ const simplifiedChineseCatalog: Partial<Record<MessageKey, Message>> = {
 
 // Japanese has no plural inflection, so `appearance.language.available` stays a
 // single string instead of the { one, other } shape the English catalog needs.
-const japaneseCatalog: Partial<Record<MessageKey, Message>> = {
+// `Record<MessageKey, Message>` (not `Partial`) makes the typecheck reject a key
+// that exists in English but is missing here; the parity test pins the same rule.
+export const japaneseCatalog: Record<MessageKey, Message> = {
   'common.reload': 'GooeyPi を再読み込み',
   'nav.projects': 'プロジェクト',
   'nav.activity': 'アクティビティ',
@@ -1418,7 +1461,6 @@ const japaneseCatalog: Partial<Record<MessageKey, Message>> = {
   'common.continue': '続行',
   'common.confirm': '確認',
   'common.refresh': '更新',
-  'common.retry': '再試行',
   'common.tryAgain': '再試行',
   'common.loading': '読み込み中…',
   'common.all': 'すべて',
@@ -1839,7 +1881,11 @@ const japaneseCatalog: Partial<Record<MessageKey, Message>> = {
   'activity.preview.empty': 'セッションを開いて詳細を表示',
   'activity.search.placeholder': 'アクティビティを絞り込む',
   'activity.showMore': 'さらに {count} 件のセッションを表示',
+  'activity.status.failed': '失敗',
   'activity.status.finished': '完了',
+  'activity.status.idle': '待機中',
+  'activity.status.running': '実行中',
+  'activity.status.unknown': '不明',
   'plugins.add.bundle.intro': '{help} 実行コードがインストールされます。任意の MCP エンドポイントには接続しません。',
   'plugins.add.card.bundle.package': 'パッケージを追加',
   'plugins.add.card.bundle.plugin': 'プラグインを追加',
@@ -1895,6 +1941,10 @@ const japaneseCatalog: Partial<Record<MessageKey, Message>> = {
   'plugins.filter.personal': '個人',
   'plugins.filter.project': 'プロジェクト',
   'plugins.filter.system': 'システム',
+  'plugins.location.bundled': '同梱',
+  'plugins.location.project': 'プロジェクト',
+  'plugins.location.system': 'システム',
+  'plugins.location.user': '個人',
   'plugins.form.arguments': '引数',
   'plugins.form.argumentsHint': '（1 行に 1 つ）',
   'plugins.form.availableIn': '利用範囲',
@@ -2171,6 +2221,31 @@ const japaneseCatalog: Partial<Record<MessageKey, Message>> = {
   'schedule.row.next': '次回',
   'schedule.row.noFutureRun': '今後の実行なし',
   'schedule.status.attention': '要対応',
+  'schedule.value.active': 'アクティブ',
+  'schedule.value.agent': 'エージェント',
+  'schedule.value.auto': '自動',
+  'schedule.value.blocked': 'ブロック',
+  'schedule.value.cancelled': 'キャンセル',
+  'schedule.value.completed': '完了',
+  'schedule.value.failed': '失敗',
+  'schedule.value.fast': '高速',
+  'schedule.value.high': '高',
+  'schedule.value.interrupted': '中断',
+  'schedule.value.low': '低',
+  'schedule.value.manual': '手動',
+  'schedule.value.max': '最大',
+  'schedule.value.medium': '中',
+  'schedule.value.minimal': '最小',
+  'schedule.value.normal': '標準',
+  'schedule.value.off': 'オフ',
+  'schedule.value.paused': '一時停止',
+  'schedule.value.queued': '待機中',
+  'schedule.value.running': '実行中',
+  'schedule.value.scheduled': 'スケジュール',
+  'schedule.value.skipped': 'スキップ',
+  'schedule.value.succeeded': '成功',
+  'schedule.value.user': 'ユーザー',
+  'schedule.value.xhigh': '最高',
   'schedule.summary.active': 'アクティブ',
   'schedule.summary.aria': 'スケジュールの概要',
   'schedule.summary.attention': '要対応',

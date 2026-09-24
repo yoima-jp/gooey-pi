@@ -47,6 +47,15 @@ const AVAILABILITY_DETAIL_KEYS: Record<string, MessageKey> = {
   [LOCAL_MCP_STATE_UNAVAILABLE_DETAIL]: 'plugins.warning.localMcpState',
 }
 
+// The directory row shows the stored location verbatim, so these English entries
+// mirror the enum; the filter above labels the same values in its own words.
+const LOCATION_KEYS: Record<SkillRecord['location'], MessageKey> = {
+  bundled: 'plugins.location.bundled',
+  user: 'plugins.location.user',
+  project: 'plugins.location.project',
+  system: 'plugins.location.system',
+}
+
 function capabilityDetailId(skill: SkillRecord): string {
   return `capability-detail-${skill.id.replace(/[^A-Za-z0-9_-]/g, '-').slice(0, 128)}`
 }
@@ -340,7 +349,7 @@ export function PluginsPage({ harness, skills, warnings, loading, activeProjectP
             const statusDetail = mcpStatusDetail(skill)
             return <article key={skill.id}>
               <span className={`directory-icon directory-icon--${skill.kind}`}><SkillIcon skill={skill}/></span>
-              <div><div><h3>{skill.name}</h3><span>{skill.location}</span></div><p id={statusDetail ? capabilityDetailId(skill) : undefined}>{skill.description}{statusDetail ? ` ${statusDetail}` : ''}</p></div>
+              <div><div><h3>{skill.name}</h3><span>{t(LOCATION_KEYS[skill.location])}</span></div><p id={statusDetail ? capabilityDetailId(skill) : undefined}>{skill.description}{statusDetail ? ` ${statusDetail}` : ''}</p></div>
               <div className="capability-actions">
                 {skill.kind === 'package' || skill.kind === 'mcp' && skill.location !== 'bundled' && skill.location !== 'system' && skill.definitionRemovalAvailable !== false ? <button type="button" className="plugin-remove" aria-label={t('plugins.aria.remove', { name: skill.name })} disabled={capabilityUpdating === skill.id} onClick={() => setConfirmRemove(skill)}><Trash2 size={13}/></button> : null}
                 {capabilityControl(skill)}
