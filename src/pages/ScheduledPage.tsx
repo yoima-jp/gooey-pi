@@ -40,7 +40,7 @@ import { PRIME_THINKING_LEVELS } from '@/types/api'
 import { formatRelative } from '@/lib/data'
 import { HARNESS_SHORT_NAMES } from '@/lib/harness'
 import { errorMessage } from '@/lib/errors'
-import { useI18n, type MessageKey } from '@/lib/i18n'
+import { formattingLocaleTag, useI18n, type MessageKey } from '@/lib/i18n'
 import { CREATED_BY_KEYS, DEFINITION_STATUS_KEYS, EXECUTION_SPEED_KEYS, EXECUTION_THINKING_KEYS, HEARTBEAT_STATUS_KEYS, RUN_STATUS_KEYS, RUN_TRIGGER_KEYS } from '@/lib/schedule-labels'
 import { sessionTitleText } from '@/lib/session-title'
 import { EmptyState, Modal, Segmented } from '@/components/ui'
@@ -285,11 +285,16 @@ function executionFromForm(form: ScheduleForm): ScheduleExecution {
   return { model: form.model, thinking: form.thinking, speed: form.fast ? 'fast' : 'normal' }
 }
 
+// Both formatters produce copy the user reads, so the locale comes from the
+// interface mirror in `@/lib/i18n` and never from `undefined` (the OS locale):
+// on an English system with the interface set to Japanese or Chinese, the OS
+// locale would keep English month names and date order on an otherwise
+// translated page.
 function formatDateTime(t: Translate, value?: string) {
   if (!value) return t('schedule.notScheduled')
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(formattingLocaleTag(), {
     month: 'short',
     day: 'numeric',
     year: date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
@@ -302,7 +307,7 @@ function formatRunDate(t: Translate, value?: string) {
   if (!value) return t('schedule.pending')
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }).format(date)
+  return new Intl.DateTimeFormat(formattingLocaleTag(), { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }).format(date)
 }
 
 function timingLabel(t: Translate, timing: ScheduleTiming) {
