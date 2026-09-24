@@ -25,6 +25,10 @@ function renderWithCode(template: string, name: string, value: string) {
   return <>{before}<code>{value}</code>{after}</>
 }
 
+// Commit messages stay English on purpose: this text is prefilled into the
+// commit input, and a shared repository's history is conventionally written in
+// English even when the interface is not. Localising it would also require a
+// separate wording per language for the file-count and conjunction cases.
 function generateCommitSummary(files: GitStatus['files']): string {
   const staged = files.filter((file) => file.staged)
   if (!staged.length) return ''

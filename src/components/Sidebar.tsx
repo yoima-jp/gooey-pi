@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { memo, useEffect, useMemo, useState, type CSSProperties, type ReactElement } from 'react'
 import { PROJECT_SORT_MODES, type AppMeta, type AppUpdateState, type HarnessId, type ProjectRecord, type ProjectSortMode, type SessionRecord, type WorkspaceView } from '@/types/api'
+import { writeClipboardText } from '@/lib/clipboard'
 import { formatRelative } from '@/lib/data'
 import { HARNESS_PRODUCT_NAMES, HARNESS_SELECTOR_ORDER, HARNESS_SHORT_NAMES } from '@/lib/harness'
 import { sortProjects } from '@/lib/project-order'
@@ -171,26 +172,6 @@ function updateConfirmCopy(state: AppUpdateState, t: Translate): { title: string
     title: t('update.confirmDownloadTitle'),
     body: t('update.confirmDownloadBody'),
   }
-}
-
-async function copySessionUuid(id: string): Promise<void> {
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(id)
-      return
-    } catch {
-      // Fall back to the document copy command when clipboard permission is unavailable.
-    }
-  }
-  const input = document.createElement('textarea')
-  input.value = id
-  input.style.position = 'fixed'
-  input.style.opacity = '0'
-  document.body.append(input)
-  input.select()
-  const copied = document.execCommand('copy')
-  input.remove()
-  if (!copied) throw new Error('Copy is unavailable')
 }
 
 function SidebarView({ projects, sessions, activeProjectId, activeSessionId, activeView, activeHarness = 'omp', harnesses, clearedAttention = {}, updateState = { phase: 'unsupported' }, onUpdateAction, onSelectHarness, onSelectProject, onSelectSession, onNavigate, onNewSession, onAddProject, onRemoveProject, projectSortMode = 'recent', onSetProjectSortMode = () => undefined, onTogglePinProject = () => undefined, onClose, onOpenPalette, onRenameSession, onArchiveSession, overlay = false, platform = 'darwin' }: SidebarProps) {
@@ -379,7 +360,7 @@ function SidebarView({ projects, sessions, activeProjectId, activeSessionId, act
                         }}
                       >{archiveTarget?.id === session.id ? <Check size={13} /> : <Archive size={13}/>}</IconButton>
                       <IconButton size="small" className="session-row__more" label={t('sidebar.sessionOptionsFor', { title: displayTitle(session.title) })} onClick={() => setSessionMenu((current) => current === session.id ? null : session.id)}><MoreHorizontal size={13}/></IconButton>
-                      {sessionMenu === session.id ? <div className="session-row__menu" aria-label={t('sidebar.sessionOptions')}><button type="button" onClick={() => { void copySessionUuid(session.id); setSessionMenu(null) }}><Copy size={12}/> {t('sidebar.copySessionUuid')}</button><button type="button" onClick={() => { setRenameTarget(session); setRenameValue(displayTitle(session.title)); setSessionMenu(null) }}><SquarePen size={12}/> {t('common.rename')}</button></div> : null}
+                      {sessionMenu === session.id ? <div className="session-row__menu" aria-label={t('sidebar.sessionOptions')}><button type="button" onClick={() => { void writeClipboardText(session.id); setSessionMenu(null) }}><Copy size={12}/> {t('sidebar.copySessionUuid')}</button><button type="button" onClick={() => { setRenameTarget(session); setRenameValue(displayTitle(session.title)); setSessionMenu(null) }}><SquarePen size={12}/> {t('common.rename')}</button></div> : null}
                     </div>
                   ))}
                   {projectSessions.length === 0 ? <button type="button" title={t('nav.newSessionIn', { name: project.name })} className="session-row session-row--empty" onClick={() => { setProjectMenu(null); onNewSession(project) }}><NotebookPen size={12} /> {t('nav.newSession')}</button> : null}

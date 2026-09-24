@@ -9,6 +9,7 @@ import { writeClipboardText } from '@/lib/clipboard'
 import { boundText } from '@/lib/render-bounds'
 import { HARNESS_SHORT_NAMES } from '@/lib/harness'
 import { useI18n } from '@/lib/i18n'
+import { localizedFallbackNotice } from '@/lib/transcript-notes'
 import { MarkdownText } from '../MarkdownText'
 import { OmpMark, PiMark, PrimeMark } from '../ui'
 import { InlineText } from './syntax'
@@ -286,6 +287,18 @@ export const SteerReadMarker = memo(function SteerReadMarker({ message }: { mess
 export const ActivityMessage = memo(function ActivityMessage({ message, harness = 'prime' }: { message: TranscriptMessage; harness?: HarnessId }) {
   const { t } = useI18n()
   const activityLabel = t('transcript.harnessMessage', { harness: HARNESS_SHORT_NAMES[harness] })
+  // A provider-fallback notice is a system row holding one text part. It reads as
+  // a status note rather than a failed command, and its text is English data, so
+  // it is shown as a localised note line instead of the tool pair below — that
+  // pair is collapsed by default (hidden output), which is why the note cannot be
+  // routed through `noteText` in `timeline.tsx`.
+  const noticePart = message.role === 'system' && message.parts.length === 1 ? message.parts[0] : undefined
+  const notice = noticePart?.type === 'text' ? localizedFallbackNotice(noticePart.text, t) : null
+  if (notice !== null) {
+    return <article className="message message--activity">
+      <div className="activity-line activity-line--note"><MarkdownText text={notice} /></div>
+    </article>
+  }
   const sourceParts: MessagePart[] =
     message.role === 'system' && !message.parts.some((part) => part.type === 'compaction')
       ? [

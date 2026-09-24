@@ -149,7 +149,6 @@ export default function App() {
     if (!bridge) return
     void revealPath(bridge.app, path).then((failure) => { if (failure) setToast(failure) })
   }, [bridge])
-  const appUpdates = useAppUpdates(bridge, reportError)
   useEffect(() => {
     window.localStorage.setItem('prime-work.cleared-session-attention', JSON.stringify(clearedAttention))
   }, [clearedAttention])
@@ -186,6 +185,9 @@ export default function App() {
   // The shell renders above the I18nProvider it wraps, so it reads the same
   // locale through the provider-free translator instead of the context.
   const { t } = useLocaleTranslator(settingsState.settings.locale)
+  // Declared after the locale so the hook can rebuild its copy when the
+  // interface language changes (see `useAppUpdates`).
+  const appUpdates = useAppUpdates(bridge, reportError, settingsState.settings.locale)
   const activeHarness = settingsState.settings.activeHarness
   const selectHarness = useCallback((harness: HarnessId) => {
     setVoiceOrbOpen(false)

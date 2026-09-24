@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { formattingLocaleTag, translate } from '@/lib/i18n'
-import type { AppUpdateState, PrimeWorkApi } from '@/types/api'
+import type { AppUpdateState, LocalePreference, PrimeWorkApi } from '@/types/api'
 
 /**
  * The update control is rendered by the App shell, which sits above
@@ -12,13 +12,15 @@ function unsupportedState(): AppUpdateState {
   return { phase: 'unsupported', message: translate(formattingLocaleTag(), 'update.automaticMessage') }
 }
 
-export function useAppUpdates(bridge: PrimeWorkApi | null, reportError: (error: unknown) => void) {
+export function useAppUpdates(bridge: PrimeWorkApi | null, reportError: (error: unknown) => void, locale: LocalePreference) {
   const [state, setState] = useState<AppUpdateState>(() => bridge ? { phase: 'idle' } : unsupportedState())
 
   useEffect(() => {
     if (!bridge) {
       // Rebuilt here rather than at module load so it follows the current
-      // interface language instead of the language at import time.
+      // interface language instead of the language at import time. `locale` is
+      // a dependency because the shell only writes the locale mirror later in
+      // its own render: switching language must rebuild this message too.
       setState(unsupportedState())
       return
     }
@@ -31,7 +33,7 @@ export function useAppUpdates(bridge: PrimeWorkApi | null, reportError: (error: 
       cancelled = true
       unsubscribe()
     }
-  }, [bridge, reportError])
+  }, [bridge, locale, reportError])
 
   const act = useCallback(async () => {
     if (!bridge) return

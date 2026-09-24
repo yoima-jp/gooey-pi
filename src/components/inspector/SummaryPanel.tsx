@@ -5,6 +5,7 @@ import { formatRelative } from '@/lib/data'
 import { formatSessionCost, formatSessionTokens } from '@/lib/format-cost'
 import { useI18n } from '@/lib/i18n'
 import { DEFINITION_STATUS_KEYS, HEARTBEAT_STATUS_KEYS } from '@/lib/schedule-labels'
+import { localizedFallbackNotice } from '@/lib/transcript-notes'
 import { MarkdownText } from '../MarkdownText'
 
 interface SummaryPanelProps {
@@ -52,12 +53,15 @@ export const SummaryPanel = memo(function SummaryPanel({ agentName = 'Prime Agen
   const active = Boolean(runtime?.isStreaming || runtime?.isCompacting)
   const sessionCost = formatSessionCost(runtime?.sessionUsage)
   const sessionTokens = formatSessionTokens(runtime?.sessionUsage)
+  // The summary can be a provider-fallback notice, which arrives as English data;
+  // it is shown in the interface language here as well as in the transcript.
+  const summaryText = lastText !== undefined ? lastText.slice(0, 220) : t('inspector.summary.empty')
   return (
     <div className="inspector-scroll scroll-area summary-panel">
       <section className="summary-hero">
         <span className={`run-state ${active ? 'is-running' : ''}`}>{active ? <LoaderCircle className="spin" size={13} /> : <Check size={13} />}{runtime?.isCompacting ? t('inspector.summary.state.compacting') : active ? t('inspector.summary.state.working', { name: shortName }) : t('inspector.summary.state.ready')}</span>
         <h2>{runtime?.isCompacting ? t('inspector.summary.heading.compacting') : active ? t('inspector.summary.heading.working') : t('inspector.summary.heading.overview')}</h2>
-        <MarkdownText text={lastText !== undefined ? lastText.slice(0, 220) : t('inspector.summary.empty')} />
+        <MarkdownText text={localizedFallbackNotice(summaryText, t) ?? summaryText} />
       </section>
       <section className="summary-section"><h3>{t('inspector.summary.workspace')}</h3><dl className="detail-list"><div><dt>{t('inspector.summary.project')}</dt><dd>{project?.name ?? t('inspector.summary.noProject')}</dd></div><div><dt>{t('inspector.summary.branch')}</dt><dd><GitBranch size={12} />{git.branch ?? project?.gitBranch ?? '—'}</dd></div><div><dt>{t('inspector.summary.environment')}</dt><dd>{t('inspector.summary.local')}</dd></div><div><dt>{t('inspector.summary.workingDirectory')}</dt><dd title={project?.primaryFolder} className="mono truncate">{project?.primaryFolder ?? '—'}</dd></div></dl></section>
       <section className="summary-section"><h3>{t('inspector.summary.progress')}</h3><div className="progress-list"><div><Check size={13} /><span>{t('inspector.summary.contextLoaded')}</span></div><div><Check size={13} /><span>{t('inspector.summary.toolsRecorded', { count: toolCount })}</span></div><div className={git.files.length ? 'is-current' : ''}><CircleDot size={13} /><span>{git.files.length ? t('inspector.summary.filesReady', { count: git.files.length }) : git.isRepo ? t('inspector.summary.noChanges') : t('inspector.summary.noGit')}</span></div></div></section>
