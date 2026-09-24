@@ -2,6 +2,7 @@ import { AudioWaveform, Mic, MicOff, X } from 'lucide-react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { PetDefinition, PrimeWorkApi } from '@/types/api'
+import { useI18n } from '@/lib/i18n'
 import { PetAvatar, type PetActivity } from './PetAvatar'
 
 interface Position { x: number; y: number }
@@ -48,6 +49,7 @@ export interface DesktopPetProps {
 }
 
 export function DesktopPet({ pets, petId, agentBusy, voiceActive, reduceMotion, petSize = 75, voiceActivity, voiceMuted = false, voiceStatus, voiceError, onOpenVoice, onToggleVoiceMute, onCloseVoice, onDismiss, focusVoiceControl = false, onVoiceControlFocused, children }: DesktopPetProps) {
+  const { t } = useI18n()
   const normalizedPetSize = Math.max(50, Math.min(125, Math.round(petSize)))
   const avatarSize = Math.round(96 * normalizedPetSize / 100)
   const surfaceWidth = Math.max(112, avatarSize + 24)
@@ -194,14 +196,14 @@ export function DesktopPet({ pets, petId, agentBusy, voiceActive, reduceMotion, 
       className={`desktop-pet desktop-pet--${activity}${voiceActive ? ' is-voice-active' : ''}${dismissArmed ? ' is-dismiss-armed' : ''}`}
       style={{ left: position.x, top: position.y, '--pet-avatar-size': `${avatarSize}px`, '--pet-surface-width': `${surfaceWidth}px`, '--pet-surface-min-height': `${initialSurfaceHeight - 8}px` } as React.CSSProperties}
       role={voiceActive ? 'complementary' : undefined}
-      aria-label={voiceActive ? 'Realtime voice session' : undefined}
+      aria-label={voiceActive ? t('voice.session.aria') : undefined}
       data-horizontal-edge={position.x > window.innerWidth / 2 ? 'right' : 'left'}
     >
       <div
         className="desktop-pet__drag-target"
         role="button"
         tabIndex={0}
-        aria-label={`${pet.displayName}, draggable GooeyPi pet`}
+        aria-label={t('pets.dragLabel', { name: pet.displayName })}
         aria-keyshortcuts={onDismiss ? 'Delete Backspace' : undefined}
         onPointerDown={startDrag}
         onPointerMove={moveDrag}
@@ -214,10 +216,10 @@ export function DesktopPet({ pets, petId, agentBusy, voiceActive, reduceMotion, 
         </span>
       </div>
       {voiceActive && voiceStatus ? <span className="desktop-pet__voice-status" role="status">{voiceStatus}</span> : null}
-      <div className="desktop-pet__voice-controls" aria-label="Realtime voice controls">
-        {!voiceActive && onOpenVoice ? <button ref={voiceControlRef} type="button" aria-label="Open realtime voice" title="Open realtime voice" onClick={onOpenVoice}><AudioWaveform size={15} /></button> : null}
-        {voiceActive && onToggleVoiceMute ? <button ref={voiceControlRef} type="button" aria-label={voiceMuted ? 'Unmute realtime voice' : 'Mute realtime voice'} title={voiceMuted ? 'Unmute realtime voice' : 'Mute realtime voice'} onClick={onToggleVoiceMute}>{voiceMuted ? <MicOff size={15} /> : <Mic size={15} />}</button> : null}
-        {voiceActive && onCloseVoice ? <button type="button" aria-label="Close realtime voice" title="Close realtime voice" onClick={onCloseVoice}><X size={16} /></button> : null}
+      <div className="desktop-pet__voice-controls" aria-label={t('voice.controls.aria')}>
+        {!voiceActive && onOpenVoice ? <button ref={voiceControlRef} type="button" className="desktop-pet__voice-open" aria-label={t('voice.open')} title={t('voice.open')} onClick={onOpenVoice}><AudioWaveform size={15} /></button> : null}
+        {voiceActive && onToggleVoiceMute ? <button ref={voiceControlRef} type="button" aria-label={voiceMuted ? t('voice.unmute') : t('voice.mute')} title={voiceMuted ? t('voice.unmute') : t('voice.mute')} onClick={onToggleVoiceMute}>{voiceMuted ? <MicOff size={15} /> : <Mic size={15} />}</button> : null}
+        {voiceActive && onCloseVoice ? <button type="button" aria-label={t('voice.close')} title={t('voice.close')} onClick={onCloseVoice}><X size={16} /></button> : null}
       </div>
       {voiceError ? <p className="desktop-pet__voice-error" role="alert">{voiceError}</p> : null}
       {children}
@@ -226,7 +228,7 @@ export function DesktopPet({ pets, petId, agentBusy, voiceActive, reduceMotion, 
           className={`pet-dismiss-drawer${dragging ? ' is-visible' : ''}${dismissArmed ? ' is-armed' : ''}`}
           role={dragging ? 'status' : undefined}
           aria-hidden={dragging ? undefined : true}
-          aria-label={dragging ? (dismissArmed ? 'Release to hide desktop pet' : 'Drag here to hide desktop pet') : undefined}
+          aria-label={dragging ? (dismissArmed ? t('pets.dismiss.release') : t('pets.dismiss.drag')) : undefined}
         >
           <span ref={dismissTargetRef} className="pet-dismiss-drawer__hitbox" aria-hidden="true" />
           <span className="pet-dismiss-drawer__visual">

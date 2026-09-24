@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useState } from 'react'
+import { formattingLocaleTag, translate } from '@/lib/i18n'
 import type { AppUpdateState, PrimeWorkApi } from '@/types/api'
 
-const FALLBACK_STATE: AppUpdateState = { phase: 'unsupported', message: 'Automatic updates are available in installed builds.' }
+/**
+ * The update control is rendered by the App shell, which sits above
+ * `I18nProvider`, so the copy is resolved through the app-wide locale mirror
+ * rather than the React context. The main process owns every other message in
+ * `AppUpdateState`; this is the only one GooeyPi composes itself.
+ */
+function unsupportedState(): AppUpdateState {
+  return { phase: 'unsupported', message: translate(formattingLocaleTag(), 'update.automaticMessage') }
+}
 
 export function useAppUpdates(bridge: PrimeWorkApi | null, reportError: (error: unknown) => void) {
-  const [state, setState] = useState<AppUpdateState>(bridge ? { phase: 'idle' } : FALLBACK_STATE)
+  const [state, setState] = useState<AppUpdateState>(() => bridge ? { phase: 'idle' } : unsupportedState())
 
   useEffect(() => {
     if (!bridge) {
-      setState(FALLBACK_STATE)
+      // Rebuilt here rather than at module load so it follows the current
+      // interface language instead of the language at import time.
+      setState(unsupportedState())
       return
     }
     let cancelled = false

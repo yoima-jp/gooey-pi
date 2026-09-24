@@ -1,8 +1,14 @@
+import { formattingLocaleTag, translate, type MessageKey } from '@/lib/i18n'
 import type { MessagePart, QueuedPrompt, TranscriptMessage } from '@/types/api'
 import { applyCompactionEvent, isCompactionEvent } from './compaction'
 import { nextTranscriptId, withPartId } from './ids'
 import { fallbackModelFromRecord, fallbackNoticeText } from './model-fallback'
 import { agentMessagePart, record, resultText, string } from './parse'
+
+// This reducer runs while agent events stream in, outside React, so its
+// system-row copy is resolved on demand through the interface locale mirror.
+// English output is unchanged (the mirror defaults to `en`).
+const message = (key: MessageKey, values?: Record<string, string | number>): string => translate(formattingLocaleTag(), key, values)
 
 export interface PrimeEventReplayStats {
   messageScans: number
@@ -34,7 +40,8 @@ function effectiveToolId(id: string | undefined, name: string): string {
   return id ?? `tool-fallback:${name}`
 }
 
-const EMPTY_TURN_FALLBACK = 'Completed without a text response.'
+/** Copy for a turn that completed without any text; translated per render pass. */
+const emptyTurnFallback = () => message('transcript.emptyTurn')
 const LOCAL_STEER_PICKUP = Symbol('gooeypi-steer-pickup')
 const LOCAL_STEER_ACCEPTED = Symbol('gooeypi-steer-accepted')
 
@@ -163,7 +170,7 @@ export function replayPrimeEvents(
       message.completedAt = completedAt
       const parts = partDrafts.get(index)
       if (addFallback && (parts?.length ?? message.parts.length) === 0) {
-        appendNode(draftParts(index), withPartId({ type: 'text', text: EMPTY_TURN_FALLBACK }))
+        appendNode(draftParts(index), withPartId({ type: 'text', text: emptyTurnFallback() }))
       }
     }
     streaming.clear()
@@ -172,7 +179,7 @@ export function replayPrimeEvents(
   const dropTailFallback = (index: number) => {
     const draft = draftParts(index)
     const tail = draft.tail
-    if (tail?.part.type !== 'text' || tail.part.text !== EMPTY_TURN_FALLBACK) return
+    if (tail?.part.type !== 'text' || tail.part.text !== emptyTurnFallback()) return
     draft.tail = tail.previous
     if (draft.tail) draft.tail.next = undefined
     else draft.head = undefined
@@ -242,7 +249,7 @@ export function replayPrimeEvents(
           role: 'system',
           kind: 'steer-read-marker',
           timestamp: Date.now(),
-          parts: [{ type: 'text', text: pickedUp.length === 1 ? 'Steer read here' : `${pickedUp.length} steers read here` }],
+          parts: [{ type: 'text', text: message('transcript.steerReadMarker', { count: pickedUp.length }) }],
         })
       }
       continue
@@ -342,7 +349,7 @@ export function replayPrimeEvents(
       continue
     }
     if (type === 'extension_error' || type === 'error' || type === 'transport_error') {
-      const text = string(raw.error) ?? string(raw.message) ?? 'Prime encountered an error.'
+      const text = string(raw.error) ?? string(raw.message) ?? message('transcript.errorFallback')
       finalizeStreaming(Date.now(), false)
       if (next.at(-1)?.role === 'system') continue
       copyTranscript()
@@ -352,10 +359,12 @@ export function replayPrimeEvents(
     if (type === 'runtime_exit') {
       finalizeStreaming(Date.now(), false)
       if (raw.expected === true || next.at(-1)?.role === 'system') continue
-      const reason = raw.code !== null && raw.code !== undefined ? `exit code ${String(raw.code)}` : string(raw.signal) ?? 'an unknown error'
+      const reason = raw.code !== null && raw.code !== undefined
+        ? message('transcript.exitCode', { code: String(raw.code) })
+        : string(raw.signal) ?? message('transcript.unknownError')
       copyTranscript()
       // Harness-neutral: this reducer serves both Prime Agent and OMP events.
-      next.push({ id: nextTranscriptId('error'), role: 'system', timestamp: Date.now(), parts: [withPartId({ type: 'text', text: `The agent stopped unexpectedly (${reason}). Send the message again to restart it.` })] })
+      next.push({ id: nextTranscriptId('error'), role: 'system', timestamp: Date.now(), parts: [withPartId({ type: 'text', text: message('transcript.runtimeExit', { reason }) })] })
     }
   }
 
